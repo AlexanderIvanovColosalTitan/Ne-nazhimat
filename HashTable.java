@@ -1,72 +1,24 @@
 public class HashTable {
-    private static final int SIZE = 20;
-    private final Node[] table;
-    private int index(int key){
-        int index = hash(key) % SIZE;
-        return index;
-    }
-    public HashTable() {
-        table = new Node[SIZE];
-        for (int i = 0; i < SIZE; i++) {
+    private int size = 3;
+    public int resize = 1;
+    private Node[] table;
+
+    HashTable() {
+        table = new Node[size];
+        for (int i = 0; i < size; i++) {
             table[i] = null;
         }
     }
 
-    public void put(int key, int value) {
-        int index = index(key);
-        Node newNode = new Node(key, value);
-        if (table[index] == null) {
-            table[index] = newNode;
-        } else {
-            Node current = table[index];
-            while (current.next != null) {
-                current = current.next;
-            }
-            current.next = newNode;
-        }
-    }
-
-    public int get(int key) throws Exception {
-        int index = index(key);
-        Node curr = table[index];
-        while (curr != null) {
-            if (curr.key == key) {
-                return curr.value;
-            }
-            curr = curr.next;
-        }
-        throw new Exception("Элемент не найден.");
-    }
-
-    public void remove(int key) throws Exception {
-        int index = index(key);
-        if (table[index] == null) {
-            throw new Exception("Элемент не найден.");
-        } else if (table[index].key == key) {
-            table[index] = table[index].next;
-        } else {
-            Node prev = table[index];
-            Node curr = table[index].next;
-            while (curr != null) {
-                if (curr.key == key) {
-                    prev.next = curr.next;
-                    return;
-                }
-                prev = curr;
-                curr = curr.next;
-            }
-            throw new Exception("Элемент не найден.");
-        }
-    }
-
-    private int hash(int key) {
-        return Integer.hashCode(key);
+    public int get() {
+        return size;
     }
 
     private static class Node {
         private int key;
         private int value;
         private Node next;
+
         public Node(int key, int value) {
             this.key = key;
             this.value = value;
@@ -74,9 +26,44 @@ public class HashTable {
         }
     }
 
-    public int size(){
+    private void resize() {
+        if (resize > size * 0.75) {
+            size = size * 2;
+            Node[] newTable = new Node[size];
+            System.arraycopy(table, 0, newTable, 0, table.length);
+            table = newTable;
+        } else if (resize > 0 && resize < size * 0.3) {
+            size = size / 2;
+            Node[] newTable = new Node[size];
+            System.arraycopy(table, 0, newTable, 0, table.length);
+            table = newTable;
+        }
+    }
+
+    public void put(int key, int value) {
+        int idx = index(key);
+        Node newNode = new Node(key, value);
+        resize();
+        if (table[idx] == null) {
+            table[idx] = newNode;
+            resize++;
+        } else {
+            Node current = table[idx];
+            while (current.next != null) {
+                current = current.next;
+            }
+            current.next = newNode;
+            resize++;
+        }
+    }
+
+    public int index(int key) {
+        return (key % size);
+    }
+
+    public int size() {
         int count = 0;
-        for (int i = 0; i < SIZE; i++) {
+        for (int i = 0; i < size; i++) {
             Node current = table[i];
             while (current != null) {
                 count++;
@@ -84,5 +71,39 @@ public class HashTable {
             }
         }
         return count;
+    }
+
+    public int get(int key) throws Exception {
+        Node currentNode = table[index(key)];
+        while (currentNode != null) {
+            if (currentNode.key == key) {
+                return currentNode.value;
+            }
+            currentNode = currentNode.next;
+        }
+        throw new Exception("Element not found");
+    }
+
+    public void remove(int key) throws Exception {
+        resize();
+        int idx = index(key);
+        if (table[idx] == null) {
+            throw new Exception("Element not found");
+        } else if (table[idx].key == key) {
+            table[idx] = table[idx].next;
+            resize--;
+        } else {
+            resize--;
+            Node previosNode = table[idx];
+            Node currentNode = table[idx].next;
+            while (currentNode != null) {
+                if (currentNode.key == key) {
+                    previosNode.next = currentNode.next;
+                    return;
+                }
+                previosNode = currentNode;
+                currentNode = currentNode.next;
+            }
+        }
     }
 }
