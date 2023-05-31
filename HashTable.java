@@ -10,10 +10,6 @@ public class HashTable {
         }
     }
 
-    public int get() {
-        return size;
-    }
-
     private static class Node {
         private int key;
         private int value;
@@ -26,18 +22,16 @@ public class HashTable {
         }
     }
 
-    private void resize() {
-        if (resize > size * 0.75) {
-            size = size * 2;
-            Node[] newTable = new Node[size];
-            System.arraycopy(table, 0, newTable, 0, table.length);
-            table = newTable;
-        } else if (resize > 0 && resize < size * 0.3) {
-            size = size / 2;
-            Node[] newTable = new Node[size];
-            System.arraycopy(table, 0, newTable, 0, table.length);
-            table = newTable;
-        }
+    private void resize() {{
+        size *= 2;
+        Node[] newTable = new Node[size];
+        for (int i = 0; i < table.length; i++)
+            if (table[i] != null) {
+                int key  = table[i].key;
+                newTable[index(key)] = table[i];
+            }
+        table = newTable;
+    }
     }
 
     public void put(int key, int value) {
@@ -52,8 +46,12 @@ public class HashTable {
             while (current.next != null) {
                 current = current.next;
             }
-            current.next = newNode;
-            resize++;
+            current.next = new Node(key, value);
+
+        }
+        resize++;
+        if (resize > size * 0.75){
+            resize();
         }
     }
 
