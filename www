@@ -1,0 +1,132 @@
+public class HashTable {
+    private int size = 3;
+    public int resize = 0;
+    private Node[] table;
+
+    HashTable() {
+        table = new Node[size];
+        for (int i = 0; i < size; i++) {
+            table[i] = null;
+        }
+    }
+
+    private static class Node {
+        private int key;
+        private int value;
+        private Node next;
+
+        public Node(int key, int value) {
+            this.key = key;
+            this.value = value;
+            this.next = null;
+        }
+    }
+    
+    public int fullSize() {
+        return size;
+    }
+
+    private void resize() {
+        size = size * 2;
+        Node[] newTable = new Node[size];
+        for (int i = 0; i < table.length; i++)
+            if (table[i] != null) {
+                int key  = table[i].key;
+                newTable[index(key)] = table[i];
+            }
+        table = newTable;
+    }
+    
+    public int index(int key) {
+        return (key % size);
+    }
+
+    public void put(int key, int value) {
+        int idx = index(key);
+        Node newNode = new Node(key, value);
+        if (table[idx] == null) {
+            table[idx] = newNode;
+            resize++;
+        } else {
+            Node current = table[idx];
+            while (current.next != null) {
+                current = current.next;
+            }
+            current.next = new Node(key, value);
+            resize++;
+
+        }
+        if (resize > size * 0.75){
+            resize();
+        }
+    }
+
+    public int get(int key) throws Exception {
+        Node currentNode = table[index(key)];
+        while (currentNode != null) {
+            if (currentNode.key == key) {
+                return currentNode.value;
+            }
+            currentNode = currentNode.next;
+        }
+        throw new Exception("Element not found");
+    }
+
+    public void remove(int key) throws Exception {
+        int idx = index(key);
+        if (table[idx] == null) {
+            throw new Exception("Element not found");
+        }
+        else if (table[idx].key == key) {
+            table[idx] = table[idx].next;
+            resize--;
+        }
+        else {
+            resize--;
+            Node previosNode = table[idx];
+            Node currentNode = table[idx].next;
+            while (currentNode != null) {
+                if (currentNode.key == key) {
+                    previosNode.next = currentNode.next;
+                    return;
+                }
+                previosNode = currentNode;
+                currentNode = currentNode.next;
+            }
+        }
+    }
+    
+    public int size() {
+        int count = 0;
+        for (int i = 0; i < size; i++) {
+            Node current = table[i];
+            while (current != null) {
+                count++;
+                current = current.next;
+            }
+        }
+        return count;
+    }
+}
+///
+public class Main {
+    public static void main(String[] args) throws Exception{
+        HashTable hash = new HashTable();
+        hash.put(1,43);
+        hash.put(2,34);
+        hash.put(3, 77);
+        System.out.println("Hashtable size: "+hash.size());
+        hash.put(4,52);
+        hash.put(5,52);
+        hash.put(6,43);
+        hash.put(7,34);
+        System.out.println("Hashtable size: "+hash.size());
+        hash.put(8, 77);
+        hash.put(9,52);
+        hash.put(10,52);
+        System.out.println(hash.get(3));
+        System.out.println("Hashtable size: "+hash.size());
+        System.out.println(hash.fullSize());
+
+    }
+}
